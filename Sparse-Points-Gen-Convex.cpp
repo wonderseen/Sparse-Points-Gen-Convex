@@ -93,7 +93,6 @@ int main(){
             cout << "No correct index." << endl;
             return -1;
         }
-        //drawContours(img1, hull, i, Scalar(0, 255, 255), 1, 100);
     }
 
     // Fitting Depressions
@@ -125,17 +124,17 @@ int main(){
         // if judge_y < 0, the line (x1, y1)-(x2,y2) belongs to the right part of the convex
         if(judge_y < 0){
             float k = (float)(x1-x2)/((float)judge_y);
-            // calculate the points score 在该直线的纵向区间内查找
+            // calculate the points score 
             for(int y = y1+5; y < y2-5; y += 2)
             {
                 bool flag = false;
                 bool insert_flag = false;
                 int start_x = (-y1+y)*k+x1 > 0?(-y1+y)*k+x1:0;
                 int score;
-                for(int x=start_x+15; x>=0; x--) // 从右往左方向查找
+                for(int x=start_x+15; x>=0; x--)
                 {
                     if(img.at<char>(Point(x,y)) != 0){
-                        if(x>start_x){ // 如果发现有点在直线右侧,直接拓展凸集边界
+                        if(x>start_x){
                             insert_flag = true;
                             flag = true;
                             hull[0].insert((*hull.begin()).begin()+it+1, 1, Point(x,y));
@@ -143,30 +142,28 @@ int main(){
                         }
                         int offset_min = 20; //允许凸集最大偏差
                         int offset_max = 50; //允许凸集最大偏差
-                        if(abs(x-start_x) > offset_min && abs(x-start_x) < offset_max){ // 如果发现有点在直线左侧,且在处理凹陷阈值内
+                        if(abs(x-start_x) > offset_min && abs(x-start_x) < offset_max){
                             score = 0;
                             for(i=-4; i<=4; i++)
                             {
                                 for(j=-2;j<=2;j++)
                                 {
-                                    if(img.at<char>(start_x+i,y+j)!=0){ // 原来凸集在该行的边界位置就有像素,所以不需要更改此处
+                                    if(img.at<char>(start_x+i,y+j)!=0){
                                         flag = true;
                                         break;
                                     }
-                                    if(img.at<char>(x+i,y+j)>0) score++;// 如果发现该行凸集边界是需要优化的,就计算离start_x最近的点是否是 密集点分布 还是 偶然分布
+                                    if(img.at<char>(x+i,y+j)>0) score++;
                                     if(score>5) break;
                                     else
                                         continue;
                                 }
                             }
-                            if(!flag || score > 5) insert_flag=true;// 如果是 该行的边界需要优化,且存在最近点的密集分布
+                            if(!flag || score > 5) insert_flag=true;
                             else{
                                 insert_flag = false;
                                 break;
                             }
                             cv::circle(img1, Point(x,y), 5, cv::Scalar(125,0,125), 1);
-                            //cout << it << " , " << k << ',' << start_x << ",  x-start=" << x-start_x << "  ," << x << ',' << y << endl;
-                            // insert new point
                             hull[0].insert((*hull.begin()).begin()+it+1, 1, Point(x,y));
                             break;
                         }
@@ -183,7 +180,7 @@ int main(){
         // if judge_y > 0, the line (x1, y1)-(x2,y2) belongs to the left part of the convex
         if(judge_y > 0){
             float k = (float)(x1-x2)/((float)judge_y);
-            // calculate the points score 在该直线的纵向区间内查找
+            // calculate the points score
             for(int y = y2-5; y < y1+5; y += 2)
             {
                 cout << y2-5 << ',' << y1+5 << endl;
@@ -191,41 +188,39 @@ int main(){
                 bool insert_flag = false;
                 int start_x = (-y1+y)*k+x1;
                 int score;
-                for(int x=start_x-15; x<img.cols; x++) // 从右往左方向查找
+                for(int x=start_x-15; x<img.cols; x++)
                 {
                     if(img.at<char>(Point(x,y)) != 0){
-                        if(x<start_x){ // 如果发现有点在直线左侧,直接拓展凸集边界
+                        if(x<start_x){
                             insert_flag = true;
                             flag = true;
                             hull[0].insert((*hull.begin()).begin()+it+1, 1, Point(x,y));
                             break;
                         }
-                        int offset_min = 20; //允许凸集最大偏差
-                        int offset_max = 50; //允许凸集最大偏差
-                        if(abs(x-start_x) > offset_min && abs(x-start_x) < offset_max){ // 如果发现有点在直线左侧,且在处理凹陷阈值内
+                        int offset_min = 20; 
+                        int offset_max = 50;
+                        if(abs(x-start_x) > offset_min && abs(x-start_x) < offset_max){
                             score = 0;
                             for(i=-4; i<=4; i++)
                             {
                                 for(j=-2;j<=2;j++)
                                 {
-                                    if(img.at<char>(start_x+i,y+j)!=0){ // 原来凸集在该行的边界位置就有像素,所以不需要更改此处
+                                    if(img.at<char>(start_x+i,y+j)!=0){
                                         flag = true;
                                         break;
                                     }
-                                    if(img.at<char>(x+i,y+j)>0) score++;// 如果发现该行凸集边界是需要优化的,就计算离start_x最近的点是否是 密集点分布 还是 偶然分布
+                                    if(img.at<char>(x+i,y+j)>0) score++;
                                     if(score>5) break;
                                     else
                                         continue;
                                 }
                             }
-                            if(!flag || score > 5) insert_flag=true;// 如果是 该行的边界需要优化,且存在最近点的密集分布
+                            if(!flag || score > 5) insert_flag=true;// Optimization Needed?
                             else{
                                 insert_flag = false;
                                 break;
                             }
                             cv::circle(img1, Point(x,y), 5, cv::Scalar(125,0,125), 1);
-                            //cout << it << " , " << k << ',' << start_x << ",  x-start=" << x-start_x << "  ," << x << ',' << y << endl;
-                            // insert new point
                             hull[0].insert((*hull.begin()).begin()+it+1, 1, Point(x,y));
                             break;
                         }

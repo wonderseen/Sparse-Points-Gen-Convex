@@ -12,6 +12,7 @@ using namespace cv;
 int main(){
     // read pre-treated image
     Mat image = imread("image/1.png", IMREAD_COLOR);
+    resize(image, image, Size(300,300));
     Mat img(image.size(), CV_8UC1, Scalar(0));
     vector<Point> min_point, max_point;
     vector<vector<Point> > contours;
